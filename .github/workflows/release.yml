@@ -1,0 +1,67 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+
+      - name: Build frontend
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Bundle frontend into Go package
+        run: |
+          rm -rf internal/httpapi/webdist
+          mkdir -p internal/httpapi/webdist
+          cp -R web/dist/. internal/httpapi/webdist/
+
+      - name: Build binary
+        env:
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+        run: |
+          go build -trimpath -ldflags="-s -w" -o vps-inspector ./cmd/vps-inspector
+          tar -czf vps-inspector_linux_${{ matrix.goarch }}.tar.gz vps-inspector
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vps-inspector_linux_${{ matrix.goarch }}
+          path: vps-inspector_linux_${{ matrix.goarch }}.tar.gz
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.tar.gz
