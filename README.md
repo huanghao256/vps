@@ -89,6 +89,7 @@ The Go server embeds `web/dist` when it exists. During early backend-only develo
 ## Project Layout
 
 ```text
+.codex/skills/          Codex skill for AI-assisted development
 cmd/vps-inspector/       Application entrypoint
 internal/agent/          Check orchestration and run lifecycle
 internal/checks/         Individual VPS quality checks
@@ -100,6 +101,22 @@ internal/status/         Real-time Linux system status collection
 web/                     React + TypeScript frontend
 docs/                    Architecture and security notes
 ```
+
+## AI Development Skill
+
+This repository includes a Codex skill for future AI-assisted development:
+
+```text
+.codex/skills/vps-inspector-dev
+```
+
+Use it when asking an AI agent to modify this project:
+
+```text
+Use $vps-inspector-dev to implement this VPS Inspector change while preserving architecture, security, and validation standards.
+```
+
+The skill documents package boundaries, UI expectations, firewall safety rules, install/uninstall behavior, and validation commands.
 
 ## Security Defaults
 

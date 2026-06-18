@@ -1,0 +1,4 @@
+interface:
+  display_name: "VPS Inspector Dev"
+  short_description: "Maintain VPS Inspector without architecture drift."
+  default_prompt: "Use $vps-inspector-dev to implement this VPS Inspector change while preserving architecture, security, and validation standards."

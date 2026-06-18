@@ -110,6 +110,7 @@ Authorization: Bearer your-long-random-token
 ## 项目结构
 
 ```text
+.codex/skills/          面向 AI 协作开发的 Codex skill
 cmd/vps-inspector/       应用入口
 internal/agent/          检测任务编排和运行生命周期
 internal/checks/         VPS 质量检测项
@@ -122,6 +123,22 @@ web/                     React + TypeScript 前端
 docs/                    架构和安全文档
 scripts/                 安装和卸载脚本
 ```
+
+## AI 开发 Skill
+
+仓库内置了一个 Codex skill，方便后续使用 AI 继续迭代时保持代码风格和架构边界：
+
+```text
+.codex/skills/vps-inspector-dev
+```
+
+让 AI 修改项目时可以这样说：
+
+```text
+Use $vps-inspector-dev to implement this VPS Inspector change while preserving architecture, security, and validation standards.
+```
+
+这个 skill 约束了后端包边界、前端模块拆分、Linux-only 规则、防火墙安全规则、一键安装/卸载行为和验证命令，可以减少后续迭代变成难维护代码的风险。
 
 ## 安全默认值
 
