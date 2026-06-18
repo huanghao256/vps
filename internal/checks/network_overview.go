@@ -10,19 +10,29 @@ import (
 	"github.com/vps-inspector/vps-inspector/internal/agent"
 )
 
+// NetworkOverviewCheck collects lightweight traffic and socket counters.
 type NetworkOverviewCheck struct{}
 
+// NewNetworkOverviewCheck creates the network overview check.
 func NewNetworkOverviewCheck() NetworkOverviewCheck {
 	return NetworkOverviewCheck{}
 }
 
-func (NetworkOverviewCheck) ID() string   { return "network.overview" }
+// ID returns the stable API identifier for this check.
+func (NetworkOverviewCheck) ID() string { return "network.overview" }
+
+// Name returns the display name for this check.
 func (NetworkOverviewCheck) Name() string { return "Network Overview" }
+
+// Description explains what the check measures.
 func (NetworkOverviewCheck) Description() string {
 	return "Collects IP traffic counters and TCP/UDP connection counts."
 }
+
+// Category groups this check in API metadata.
 func (NetworkOverviewCheck) Category() string { return "network" }
 
+// Run collects lightweight network counters for the dashboard.
 func (c NetworkOverviewCheck) Run(ctx context.Context) agent.Result {
 	started := time.Now().UTC()
 	if err := ctx.Err(); err != nil {

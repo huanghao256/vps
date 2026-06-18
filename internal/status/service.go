@@ -13,12 +13,15 @@ import (
 	"time"
 )
 
+// Service collects realtime Linux status snapshots for the dashboard.
 type Service struct{}
 
+// NewService returns a status collector with process-local uptime tracking.
 func NewService() Service {
 	return Service{}
 }
 
+// Snapshot is the API payload for one realtime status sample.
 type Snapshot struct {
 	CapturedAt  time.Time   `json:"capturedAt"`
 	Health      Health      `json:"health"`
@@ -31,11 +34,13 @@ type Snapshot struct {
 	System      System      `json:"system"`
 }
 
+// Health summarizes overall load for the top-level status card.
 type Health struct {
 	Label   string  `json:"label"`
 	LoadPct float64 `json:"loadPct"`
 }
 
+// CPU contains core count, usage, and Linux load averages.
 type CPU struct {
 	Cores    int     `json:"cores"`
 	UsagePct float64 `json:"usagePct"`
@@ -44,6 +49,7 @@ type CPU struct {
 	Load15   float64 `json:"load15"`
 }
 
+// Memory contains total, used, available, and percentage usage values.
 type Memory struct {
 	TotalBytes     uint64  `json:"totalBytes"`
 	UsedBytes      uint64  `json:"usedBytes"`
@@ -51,6 +57,7 @@ type Memory struct {
 	UsagePct       float64 `json:"usagePct"`
 }
 
+// Disk describes usage for the root filesystem.
 type Disk struct {
 	Mount      string  `json:"mount"`
 	TotalBytes uint64  `json:"totalBytes"`
@@ -59,11 +66,13 @@ type Disk struct {
 	UsagePct   float64 `json:"usagePct"`
 }
 
+// Uptime contains OS uptime and this process uptime in seconds.
 type Uptime struct {
 	SystemSeconds float64 `json:"systemSeconds"`
 	AppSeconds    float64 `json:"appSeconds"`
 }
 
+// Network contains primary IP, total traffic counters, and sampled throughput.
 type Network struct {
 	IPv4             string  `json:"ipv4"`
 	ReceivedBytes    uint64  `json:"receivedBytes"`
@@ -72,11 +81,13 @@ type Network struct {
 	TransmitMbps     float64 `json:"transmitMbps"`
 }
 
+// Connections contains current TCP and UDP socket counts.
 type Connections struct {
 	TCP int `json:"tcp"`
 	UDP int `json:"udp"`
 }
 
+// System contains host-level identity and process/thread counts.
 type System struct {
 	Hostname  string `json:"hostname"`
 	OS        string `json:"os"`
@@ -86,6 +97,7 @@ type System struct {
 
 var appStartedAt = time.Now()
 
+// Snapshot samples Linux status data. It returns an error when /proc is unavailable.
 func (s Service) Snapshot(ctx context.Context) (Snapshot, error) {
 	if _, err := os.Stat("/proc"); err != nil {
 		return Snapshot{}, errors.New("system status requires Linux /proc")

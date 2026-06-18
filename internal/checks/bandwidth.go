@@ -11,21 +11,31 @@ import (
 	"github.com/vps-inspector/vps-inspector/internal/agent"
 )
 
+// BandwidthCheck estimates network throughput with small HTTP upload/download samples.
 type BandwidthCheck struct {
 	client *http.Client
 }
 
+// NewBandwidthCheck creates a bandwidth check with bounded HTTP timeouts.
 func NewBandwidthCheck() BandwidthCheck {
 	return BandwidthCheck{client: &http.Client{Timeout: 18 * time.Second}}
 }
 
-func (BandwidthCheck) ID() string   { return "network.bandwidth" }
+// ID returns the stable API identifier for this check.
+func (BandwidthCheck) ID() string { return "network.bandwidth" }
+
+// Name returns the display name for this check.
 func (BandwidthCheck) Name() string { return "Bandwidth" }
+
+// Description explains what the check measures.
 func (BandwidthCheck) Description() string {
 	return "Runs a small Cloudflare download and upload sample."
 }
+
+// Category groups this check in API metadata.
 func (BandwidthCheck) Category() string { return "bandwidth" }
 
+// Run executes the bandwidth samples and returns normalized throughput metrics.
 func (c BandwidthCheck) Run(ctx context.Context) agent.Result {
 	started := time.Now().UTC()
 	downMbps, downErr := c.download(ctx, 8_000_000)

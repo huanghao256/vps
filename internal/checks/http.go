@@ -9,16 +9,19 @@ import (
 	"github.com/vps-inspector/vps-inspector/internal/agent"
 )
 
+// HTTPTarget describes one outbound HTTPS probe target.
 type HTTPTarget struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
 }
 
+// HTTPReachabilityCheck tests outbound HTTPS reachability to known services.
 type HTTPReachabilityCheck struct {
 	client  *http.Client
 	targets []HTTPTarget
 }
 
+// NewHTTPReachabilityCheck creates an HTTPS reachability check for the targets.
 func NewHTTPReachabilityCheck(targets []HTTPTarget) HTTPReachabilityCheck {
 	return HTTPReachabilityCheck{
 		client:  &http.Client{Timeout: 8 * time.Second},
@@ -26,6 +29,7 @@ func NewHTTPReachabilityCheck(targets []HTTPTarget) HTTPReachabilityCheck {
 	}
 }
 
+// DefaultHTTPTargets returns lightweight outbound HTTPS probes.
 func DefaultHTTPTargets() []HTTPTarget {
 	return []HTTPTarget{
 		{Name: "Cloudflare Trace", URL: "https://cloudflare.com/cdn-cgi/trace"},
@@ -34,13 +38,21 @@ func DefaultHTTPTargets() []HTTPTarget {
 	}
 }
 
-func (HTTPReachabilityCheck) ID() string   { return "network.http_reachability" }
+// ID returns the stable API identifier for this check.
+func (HTTPReachabilityCheck) ID() string { return "network.http_reachability" }
+
+// Name returns the display name for this check.
 func (HTTPReachabilityCheck) Name() string { return "HTTP Reachability" }
+
+// Description explains what the check measures.
 func (HTTPReachabilityCheck) Description() string {
 	return "Checks outbound HTTPS reachability to common services."
 }
+
+// Category groups this check in API metadata.
 func (HTTPReachabilityCheck) Category() string { return "network" }
 
+// Run probes outbound HTTPS targets and reports reachability.
 func (c HTTPReachabilityCheck) Run(ctx context.Context) agent.Result {
 	started := time.Now().UTC()
 	results := make([]map[string]any, 0, len(c.targets))

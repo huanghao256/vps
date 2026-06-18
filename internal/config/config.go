@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// Config contains all process-level settings loaded from environment variables.
 type Config struct {
 	Addr            string
 	AuthToken       string
@@ -16,6 +17,7 @@ type Config struct {
 	ShutdownTimeout time.Duration
 }
 
+// Load reads configuration from the environment and enforces safe binding rules.
 func Load() (Config, error) {
 	cfg := Config{
 		Addr:            getEnv("VPS_INSPECTOR_ADDR", "127.0.0.1:8719"),

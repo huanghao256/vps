@@ -11,17 +11,27 @@ import (
 	"github.com/vps-inspector/vps-inspector/internal/agent"
 )
 
+// SystemCheck collects basic OS and process runtime information.
 type SystemCheck struct{}
 
+// NewSystemCheck creates the system information check.
 func NewSystemCheck() SystemCheck {
 	return SystemCheck{}
 }
 
-func (SystemCheck) ID() string          { return "system.info" }
-func (SystemCheck) Name() string        { return "System Information" }
-func (SystemCheck) Description() string { return "Collects OS, CPU, hostname, and memory basics." }
-func (SystemCheck) Category() string    { return "system" }
+// ID returns the stable API identifier for this check.
+func (SystemCheck) ID() string { return "system.info" }
 
+// Name returns the display name for this check.
+func (SystemCheck) Name() string { return "System Information" }
+
+// Description explains what the check measures.
+func (SystemCheck) Description() string { return "Collects OS, CPU, hostname, and memory basics." }
+
+// Category groups this check in API metadata.
+func (SystemCheck) Category() string { return "system" }
+
+// Run collects basic runtime and host information.
 func (c SystemCheck) Run(ctx context.Context) agent.Result {
 	started := time.Now().UTC()
 	select {

@@ -14,17 +14,27 @@ import (
 
 const diskSampleSize = 8 * 1024 * 1024
 
+// DiskCheck measures small sequential disk read/write samples.
 type DiskCheck struct{}
 
+// NewDiskCheck creates the disk I/O check.
 func NewDiskCheck() DiskCheck {
 	return DiskCheck{}
 }
 
-func (DiskCheck) ID() string          { return "disk.io" }
-func (DiskCheck) Name() string        { return "Disk I/O" }
-func (DiskCheck) Description() string { return "Measures a small sequential write and read sample." }
-func (DiskCheck) Category() string    { return "storage" }
+// ID returns the stable API identifier for this check.
+func (DiskCheck) ID() string { return "disk.io" }
 
+// Name returns the display name for this check.
+func (DiskCheck) Name() string { return "Disk I/O" }
+
+// Description explains what the check measures.
+func (DiskCheck) Description() string { return "Measures a small sequential write and read sample." }
+
+// Category groups this check in API metadata.
+func (DiskCheck) Category() string { return "storage" }
+
+// Run executes the disk sample and returns normalized I/O metrics.
 func (c DiskCheck) Run(ctx context.Context) agent.Result {
 	started := time.Now().UTC()
 

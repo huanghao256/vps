@@ -10,19 +10,23 @@ import (
 	"github.com/vps-inspector/vps-inspector/internal/agent"
 )
 
+// LatencyTarget describes one TCP connect latency probe.
 type LatencyTarget struct {
 	Name    string `json:"name"`
 	Address string `json:"address"`
 }
 
+// LatencyCheck measures TCP connect latency to multiple public targets.
 type LatencyCheck struct {
 	targets []LatencyTarget
 }
 
+// NewLatencyCheck creates a latency check for the supplied targets.
 func NewLatencyCheck(targets []LatencyTarget) LatencyCheck {
 	return LatencyCheck{targets: targets}
 }
 
+// DefaultLatencyTargets returns globally reachable TCP latency probes.
 func DefaultLatencyTargets() []LatencyTarget {
 	return []LatencyTarget{
 		{Name: "Cloudflare", Address: "1.1.1.1:443"},
@@ -31,13 +35,21 @@ func DefaultLatencyTargets() []LatencyTarget {
 	}
 }
 
-func (LatencyCheck) ID() string   { return "network.tcp_latency" }
+// ID returns the stable API identifier for this check.
+func (LatencyCheck) ID() string { return "network.tcp_latency" }
+
+// Name returns the display name for this check.
 func (LatencyCheck) Name() string { return "TCP Latency" }
+
+// Description explains what the check measures.
 func (LatencyCheck) Description() string {
 	return "Measures TCP connect latency to known network targets."
 }
+
+// Category groups this check in API metadata.
 func (LatencyCheck) Category() string { return "network" }
 
+// Run measures TCP connect latency and returns median latency details.
 func (c LatencyCheck) Run(ctx context.Context) agent.Result {
 	started := time.Now().UTC()
 	results := make([]map[string]any, 0, len(c.targets))

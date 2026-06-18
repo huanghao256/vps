@@ -8,10 +8,12 @@ import (
 	"time"
 )
 
+// Inspector coordinates registered checks and aggregates their results into runs.
 type Inspector struct {
 	checks map[string]Check
 }
 
+// NewInspector indexes checks by ID for later execution.
 func NewInspector(checks []Check) *Inspector {
 	registered := make(map[string]Check, len(checks))
 	for _, check := range checks {
@@ -20,6 +22,7 @@ func NewInspector(checks []Check) *Inspector {
 	return &Inspector{checks: registered}
 }
 
+// ListChecks returns deterministic check metadata for the API and UI.
 func (i *Inspector) ListChecks() []CheckInfo {
 	items := make([]CheckInfo, 0, len(i.checks))
 	for _, check := range i.checks {
@@ -39,6 +42,7 @@ func (i *Inspector) ListChecks() []CheckInfo {
 	return items
 }
 
+// Run executes the selected checks concurrently and returns one completed run.
 func (i *Inspector) Run(ctx context.Context, ids []string) (Run, error) {
 	selected, err := i.selectChecks(ids)
 	if err != nil {

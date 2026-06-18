@@ -10,14 +10,17 @@ import (
 	"time"
 )
 
+// Service manages firewall state and port rules through the detected backend.
 type Service struct {
 	runner commandRunner
 }
 
+// NewService creates a firewall service with bounded command execution time.
 func NewService() Service {
 	return Service{runner: commandRunner{timeout: 12 * time.Second}}
 }
 
+// Snapshot describes the detected firewall backend and its visible rules.
 type Snapshot struct {
 	Backend   string `json:"backend"`
 	Available bool   `json:"available"`
@@ -26,6 +29,7 @@ type Snapshot struct {
 	Rules     []Rule `json:"rules"`
 }
 
+// Rule is a normalized firewall port rule for API and UI consumers.
 type Rule struct {
 	Port     int    `json:"port"`
 	Protocol string `json:"protocol"`
@@ -33,11 +37,13 @@ type Rule struct {
 	Source   string `json:"source"`
 }
 
+// PortRuleRequest is the only accepted input shape for mutating firewall rules.
 type PortRuleRequest struct {
 	Port     int    `json:"port"`
 	Protocol string `json:"protocol"`
 }
 
+// Snapshot detects firewall availability and lists currently visible rules.
 func (s Service) Snapshot(ctx context.Context) Snapshot {
 	backend := detectBackend()
 	if backend == "" {
@@ -54,6 +60,7 @@ func (s Service) Snapshot(ctx context.Context) Snapshot {
 	}
 }
 
+// Enable starts or enables the detected firewall backend when supported.
 func (s Service) Enable(ctx context.Context) error {
 	backend := detectBackend()
 	if backend == "" {
@@ -74,6 +81,7 @@ func (s Service) Enable(ctx context.Context) error {
 	}
 }
 
+// Disable stops or disables the detected firewall backend when supported.
 func (s Service) Disable(ctx context.Context) error {
 	backend := detectBackend()
 	if backend == "" {
@@ -94,6 +102,7 @@ func (s Service) Disable(ctx context.Context) error {
 	}
 }
 
+// AddRule opens a TCP or UDP port after validating the structured request.
 func (s Service) AddRule(ctx context.Context, req PortRuleRequest) error {
 	protocol, err := normalizeRule(req)
 	if err != nil {
@@ -120,6 +129,7 @@ func (s Service) AddRule(ctx context.Context, req PortRuleRequest) error {
 	return err
 }
 
+// DeleteRule removes a TCP or UDP port rule when the backend supports deletion.
 func (s Service) DeleteRule(ctx context.Context, req PortRuleRequest) error {
 	protocol, err := normalizeRule(req)
 	if err != nil {

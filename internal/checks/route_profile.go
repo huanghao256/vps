@@ -9,20 +9,24 @@ import (
 	"github.com/vps-inspector/vps-inspector/internal/agent"
 )
 
+// RouteTarget describes one carrier-oriented route probe.
 type RouteTarget struct {
 	Name    string `json:"name"`
 	Carrier string `json:"carrier"`
 	Address string `json:"address"`
 }
 
+// RouteProfileCheck estimates China carrier route quality from TCP probes.
 type RouteProfileCheck struct {
 	targets []RouteTarget
 }
 
+// NewRouteProfileCheck creates a route profile check for the supplied targets.
 func NewRouteProfileCheck(targets []RouteTarget) RouteProfileCheck {
 	return RouteProfileCheck{targets: targets}
 }
 
+// DefaultRouteTargets returns carrier probes used for line classification.
 func DefaultRouteTargets() []RouteTarget {
 	return []RouteTarget{
 		{Name: "China Telecom DNS", Carrier: "Telecom", Address: "202.96.134.33:53"},
@@ -31,13 +35,21 @@ func DefaultRouteTargets() []RouteTarget {
 	}
 }
 
-func (RouteProfileCheck) ID() string   { return "network.route_profile" }
+// ID returns the stable API identifier for this check.
+func (RouteProfileCheck) ID() string { return "network.route_profile" }
+
+// Name returns the display name for this check.
 func (RouteProfileCheck) Name() string { return "Route Profile" }
+
+// Description explains what the check measures.
 func (RouteProfileCheck) Description() string {
 	return "Estimates carrier route quality using TCP probes to China carrier targets."
 }
+
+// Category groups this check in API metadata.
 func (RouteProfileCheck) Category() string { return "line" }
 
+// Run probes carrier targets and derives a Chinese line-quality profile.
 func (c RouteProfileCheck) Run(ctx context.Context) agent.Result {
 	started := time.Now().UTC()
 	items := make([]map[string]any, 0, len(c.targets))

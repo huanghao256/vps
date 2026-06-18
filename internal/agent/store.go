@@ -2,12 +2,14 @@ package agent
 
 import "sync"
 
+// RunStore keeps a bounded in-memory history of recent inspection runs.
 type RunStore struct {
 	mu   sync.RWMutex
 	runs []Run
 	max  int
 }
 
+// NewRunStore creates a run store with a positive retention limit.
 func NewRunStore(max int) *RunStore {
 	if max <= 0 {
 		max = 20
@@ -15,6 +17,7 @@ func NewRunStore(max int) *RunStore {
 	return &RunStore{max: max}
 }
 
+// Add stores a run as the newest entry and evicts old history when needed.
 func (s *RunStore) Add(run Run) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -24,6 +27,7 @@ func (s *RunStore) Add(run Run) {
 	}
 }
 
+// List returns a copy of recent runs in newest-first order.
 func (s *RunStore) List() []Run {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -32,6 +36,7 @@ func (s *RunStore) List() []Run {
 	return copied
 }
 
+// Get returns a run by ID when it is still retained.
 func (s *RunStore) Get(id string) (Run, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

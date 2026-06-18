@@ -11,7 +11,7 @@ import (
 //go:embed webdist
 var embeddedWeb embed.FS
 
-func (s *Server) serveWeb(w http.ResponseWriter, r *http.Request) {
+func (s *server) serveWeb(w http.ResponseWriter, r *http.Request) {
 	dist := filepath.Join("web", "dist")
 	index := filepath.Join(dist, "index.html")
 	if _, err := os.Stat(index); err == nil {

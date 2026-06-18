@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Run is a persisted snapshot of one inspection execution.
 type Run struct {
 	ID        string    `json:"id"`
 	CheckIDs  []string  `json:"checkIds"`
@@ -16,6 +17,7 @@ type Run struct {
 	Results   []Result  `json:"results"`
 }
 
+// NewRun creates a running inspection record for the supplied check IDs.
 func NewRun(checkIDs []string) Run {
 	return Run{
 		ID:        newRunID(),
@@ -26,6 +28,7 @@ func NewRun(checkIDs []string) Run {
 	}
 }
 
+// Complete marks a run finished and computes its average score.
 func (r *Run) Complete() {
 	r.Status = "completed"
 	r.EndedAt = time.Now().UTC()

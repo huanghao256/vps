@@ -29,6 +29,15 @@ Use this skill to keep VPS Inspector maintainable while adding features. Prefer 
 
 When adding a backend feature, place domain logic in the domain package first, then expose it through `httpapi`.
 
+## Go Code Style
+
+- Add Go doc comments for exported packages, types, constructors, functions, methods, and constants.
+- Comments should describe the contract, boundary, or non-obvious behavior; avoid restating the identifier name.
+- Prefer unexported types and helpers unless another package genuinely needs them.
+- Keep request validation close to the API boundary, and keep domain invariants inside the domain package.
+- Use `context` for network, command, and long-running operations.
+- Do not add broad dependencies for small standard-library problems.
+
 ## VPS Check Pattern
 
 For a new VPS quality check:

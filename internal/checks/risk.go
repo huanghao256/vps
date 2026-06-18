@@ -11,21 +11,31 @@ import (
 	"github.com/vps-inspector/vps-inspector/internal/agent"
 )
 
+// RiskCheck collects lightweight IP reputation and reachability signals.
 type RiskCheck struct {
 	client *http.Client
 }
 
+// NewRiskCheck creates an IP risk check with bounded HTTP timeouts.
 func NewRiskCheck() RiskCheck {
 	return RiskCheck{client: &http.Client{Timeout: 8 * time.Second}}
 }
 
-func (RiskCheck) ID() string   { return "risk.reputation" }
+// ID returns the stable API identifier for this check.
+func (RiskCheck) ID() string { return "risk.reputation" }
+
+// Name returns the display name for this check.
 func (RiskCheck) Name() string { return "Risk Profile" }
+
+// Description explains what the check measures.
 func (RiskCheck) Description() string {
 	return "Checks public IP visibility and common service reachability signals."
 }
+
+// Category groups this check in API metadata.
 func (RiskCheck) Category() string { return "risk" }
 
+// Run collects public IP and service reachability signals for risk scoring.
 func (c RiskCheck) Run(ctx context.Context) agent.Result {
 	started := time.Now().UTC()
 	trace, traceErr := c.cloudflareTrace(ctx)

@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"io"
@@ -14,8 +15,9 @@ import (
 	"github.com/vps-inspector/vps-inspector/internal/status"
 )
 
-type Server struct {
-	httpServer  *http.Server
+const maxJSONBodyBytes = 1 << 20
+
+type server struct {
 	inspector   *agent.Inspector
 	store       *agent.RunStore
 	statusSvc   status.Service
@@ -24,8 +26,9 @@ type Server struct {
 	logger      *slog.Logger
 }
 
+// NewServer builds the HTTP server with API routes, middleware, and static web assets.
 func NewServer(cfg config.Config, inspector *agent.Inspector, logger *slog.Logger) *http.Server {
-	api := &Server{
+	api := &server{
 		inspector:   inspector,
 		store:       agent.NewRunStore(50),
 		statusSvc:   status.NewService(),
@@ -57,28 +60,30 @@ func NewServer(cfg config.Config, inspector *agent.Inspector, logger *slog.Logge
 	}
 }
 
-func (s *Server) health(w http.ResponseWriter, r *http.Request) {
+func (s *server) health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status": "ok",
 		"auth":   s.cfg.AuthToken != "",
 	})
 }
 
-func (s *Server) listChecks(w http.ResponseWriter, r *http.Request) {
+func (s *server) listChecks(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"checks": s.inspector.ListChecks()})
 }
 
-func (s *Server) listRuns(w http.ResponseWriter, r *http.Request) {
+func (s *server) listRuns(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"runs": s.store.List()})
 }
 
-func (s *Server) createRun(w http.ResponseWriter, r *http.Request) {
+func (s *server) createRun(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		CheckIDs []string `json:"checkIds"`
 	}
 	if r.Body != nil {
 		defer r.Body.Close()
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxJSONBodyBytes))
+		decoder.DisallowUnknownFields()
+		if err := decoder.Decode(&req); err != nil {
 			if errors.Is(err, io.EOF) {
 				req.CheckIDs = nil
 			} else {
@@ -97,7 +102,7 @@ func (s *Server) createRun(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, run)
 }
 
-func (s *Server) getRun(w http.ResponseWriter, r *http.Request) {
+func (s *server) getRun(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/api/v1/runs/")
 	if id == "" {
 		writeError(w, http.StatusNotFound, "run not found")
@@ -111,7 +116,7 @@ func (s *Server) getRun(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, run)
 }
 
-func (s *Server) systemStatus(w http.ResponseWriter, r *http.Request) {
+func (s *server) systemStatus(w http.ResponseWriter, r *http.Request) {
 	snapshot, err := s.statusSvc.Snapshot(r.Context())
 	if err != nil {
 		writeError(w, http.StatusServiceUnavailable, err.Error())
@@ -120,11 +125,11 @@ func (s *Server) systemStatus(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, snapshot)
 }
 
-func (s *Server) firewallStatus(w http.ResponseWriter, r *http.Request) {
+func (s *server) firewallStatus(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, s.firewallSvc.Snapshot(r.Context()))
 }
 
-func (s *Server) enableFirewall(w http.ResponseWriter, r *http.Request) {
+func (s *server) enableFirewall(w http.ResponseWriter, r *http.Request) {
 	if err := s.firewallSvc.Enable(r.Context()); err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -132,7 +137,7 @@ func (s *Server) enableFirewall(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, s.firewallSvc.Snapshot(r.Context()))
 }
 
-func (s *Server) disableFirewall(w http.ResponseWriter, r *http.Request) {
+func (s *server) disableFirewall(w http.ResponseWriter, r *http.Request) {
 	if err := s.firewallSvc.Disable(r.Context()); err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
@@ -140,7 +145,7 @@ func (s *Server) disableFirewall(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, s.firewallSvc.Snapshot(r.Context()))
 }
 
-func (s *Server) addFirewallRule(w http.ResponseWriter, r *http.Request) {
+func (s *server) addFirewallRule(w http.ResponseWriter, r *http.Request) {
 	req, ok := decodeFirewallRule(w, r)
 	if !ok {
 		return
@@ -152,7 +157,7 @@ func (s *Server) addFirewallRule(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, s.firewallSvc.Snapshot(r.Context()))
 }
 
-func (s *Server) deleteFirewallRule(w http.ResponseWriter, r *http.Request) {
+func (s *server) deleteFirewallRule(w http.ResponseWriter, r *http.Request) {
 	req, ok := decodeFirewallRule(w, r)
 	if !ok {
 		return
@@ -171,21 +176,22 @@ func decodeFirewallRule(w http.ResponseWriter, r *http.Request) (firewall.PortRu
 		return firewall.PortRuleRequest{}, false
 	}
 	defer r.Body.Close()
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxJSONBodyBytes))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid JSON body")
 		return firewall.PortRuleRequest{}, false
 	}
 	return req, true
 }
 
-func (s *Server) withAuth(next http.HandlerFunc) http.HandlerFunc {
+func (s *server) withAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if s.cfg.AuthToken == "" {
 			next(w, r)
 			return
 		}
-		header := r.Header.Get("Authorization")
-		if header != "Bearer "+s.cfg.AuthToken {
+		if !validBearerToken(r.Header.Get("Authorization"), s.cfg.AuthToken) {
 			writeError(w, http.StatusUnauthorized, "missing or invalid bearer token")
 			return
 		}
@@ -193,7 +199,12 @@ func (s *Server) withAuth(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func (s *Server) requestLog(next http.Handler) http.Handler {
+func validBearerToken(header, token string) bool {
+	expected := "Bearer " + token
+	return subtle.ConstantTimeCompare([]byte(header), []byte(expected)) == 1
+}
+
+func (s *server) requestLog(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r)
 		s.logger.Info("request", "method", r.Method, "path", r.URL.Path, "remote", r.RemoteAddr)

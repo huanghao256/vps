@@ -9,21 +9,31 @@ import (
 	"github.com/vps-inspector/vps-inspector/internal/agent"
 )
 
+// StabilityCheck estimates loss and jitter with repeated TCP probes.
 type StabilityCheck struct {
 	targets []LatencyTarget
 }
 
+// NewStabilityCheck creates a stability check for the supplied latency targets.
 func NewStabilityCheck(targets []LatencyTarget) StabilityCheck {
 	return StabilityCheck{targets: targets}
 }
 
-func (StabilityCheck) ID() string   { return "network.stability" }
+// ID returns the stable API identifier for this check.
+func (StabilityCheck) ID() string { return "network.stability" }
+
+// Name returns the display name for this check.
 func (StabilityCheck) Name() string { return "Stability" }
+
+// Description explains what the check measures.
 func (StabilityCheck) Description() string {
 	return "Runs repeated TCP probes and estimates loss and jitter."
 }
+
+// Category groups this check in API metadata.
 func (StabilityCheck) Category() string { return "stability" }
 
+// Run repeats latency probes and estimates loss and jitter.
 func (c StabilityCheck) Run(ctx context.Context) agent.Result {
 	started := time.Now().UTC()
 	var latencies []float64
