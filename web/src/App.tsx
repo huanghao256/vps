@@ -9,15 +9,17 @@ const tokenKey = 'vps-inspector-token';
 
 export function App() {
   const [activePage, setActivePage] = useState<PageKey>('status');
-  const [token, setToken] = useState(() => localStorage.getItem(tokenKey) ?? '');
+  const [token] = useState(() => readInitialToken());
 
   useEffect(() => {
-    localStorage.setItem(tokenKey, token);
+    if (token !== '') {
+      localStorage.setItem(tokenKey, token);
+    }
   }, [token]);
 
   return (
     <main className="appShell">
-      <Sidebar activePage={activePage} token={token} onPageChange={setActivePage} onTokenChange={setToken} />
+      <Sidebar activePage={activePage} authenticated={token !== ''} onPageChange={setActivePage} />
       <section className="workspace">
         {activePage === 'status' && <SystemStatusPage token={token} />}
         {activePage === 'detection' && <VpsDetectionPage token={token} />}
@@ -27,3 +29,15 @@ export function App() {
   );
 }
 
+function readInitialToken() {
+  const pathToken = window.location.pathname.split('/').filter(Boolean)[0] ?? '';
+  if (isURLToken(pathToken)) {
+    window.history.replaceState({}, document.title, '/');
+    return decodeURIComponent(pathToken);
+  }
+  return localStorage.getItem(tokenKey) ?? '';
+}
+
+function isURLToken(value: string) {
+  return /^[A-Za-z0-9_-]{16,128}$/.test(value);
+}

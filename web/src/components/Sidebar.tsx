@@ -2,9 +2,8 @@ import type { PageKey } from '../types';
 
 type Props = {
   activePage: PageKey;
-  token: string;
   onPageChange: (page: PageKey) => void;
-  onTokenChange: (token: string) => void;
+  authenticated: boolean;
 };
 
 const navItems: Array<{ key: PageKey; label: string }> = [
@@ -13,7 +12,7 @@ const navItems: Array<{ key: PageKey; label: string }> = [
   { key: 'ports', label: '端口控制' },
 ];
 
-export function Sidebar({ activePage, token, onPageChange, onTokenChange }: Props) {
+export function Sidebar({ activePage, authenticated, onPageChange }: Props) {
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -37,16 +36,10 @@ export function Sidebar({ activePage, token, onPageChange, onTokenChange }: Prop
       </nav>
 
       <div className="tokenPanel">
-        <label htmlFor="token">访问令牌</label>
-        <input
-          id="token"
-          type="password"
-          value={token}
-          onChange={(event) => onTokenChange(event.target.value)}
-          placeholder="本地留空"
-        />
+        <span className={authenticated ? 'authState ok' : 'authState warn'}>
+          {authenticated ? '已通过安装链接授权' : '请使用安装输出的访问链接'}
+        </span>
       </div>
     </aside>
   );
 }
-

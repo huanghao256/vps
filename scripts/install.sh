@@ -47,10 +47,25 @@ validate_project_root() {
 
 random_token() {
   if command -v openssl >/dev/null 2>&1; then
-    openssl rand -hex 24
+    openssl rand -base64 32 | tr -dc 'A-Za-z0-9' | cut -c 1-24
     return
   fi
   date +%s | sha256sum | awk '{print $1}'
+}
+
+public_host() {
+  if [ -n "${VPS_INSPECTOR_PUBLIC_HOST:-}" ]; then
+    echo "$VPS_INSPECTOR_PUBLIC_HOST"
+    return
+  fi
+
+  host="$(curl -fsS --max-time 5 https://api.ipify.org 2>/dev/null || true)"
+  if [ -n "$host" ]; then
+    echo "$host"
+    return
+  fi
+
+  hostname -I 2>/dev/null | awk '{print $1}'
 }
 
 download_url() {
@@ -139,8 +154,12 @@ main() {
   echo
   echo "VPS Inspector installed."
   echo "Root: ${PROJECT_ROOT}"
-  echo "URL: http://<server-ip>:${ADDR##*:}"
-  echo "Token: ${TOKEN}"
+  host="$(public_host)"
+  if [ -n "$host" ]; then
+    echo "Access URL: http://${host}:${ADDR##*:}/${TOKEN}"
+  else
+    echo "Access URL: http://<server-ip>:${ADDR##*:}/${TOKEN}"
+  fi
   echo "Manage: systemctl status ${SERVICE_NAME}"
 }
 

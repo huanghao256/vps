@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 //go:embed webdist
@@ -15,19 +16,46 @@ func (s *server) serveWeb(w http.ResponseWriter, r *http.Request) {
 	dist := filepath.Join("web", "dist")
 	index := filepath.Join(dist, "index.html")
 	if _, err := os.Stat(index); err == nil {
-		http.FileServer(http.Dir(dist)).ServeHTTP(w, r)
+		serveLocalSPA(w, r, dist, index)
 		return
 	}
 
 	if webFS, err := fs.Sub(embeddedWeb, "webdist"); err == nil {
 		if _, err := webFS.Open("index.html"); err == nil {
-			http.FileServer(http.FS(webFS)).ServeHTTP(w, r)
+			serveEmbeddedSPA(w, r, webFS)
 			return
 		}
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, _ = w.Write([]byte(fallbackHTML))
+}
+
+func serveLocalSPA(w http.ResponseWriter, r *http.Request, dist, index string) {
+	target := strings.TrimPrefix(filepath.Clean(r.URL.Path), string(filepath.Separator))
+	if target != "." && target != "" {
+		path := filepath.Join(dist, target)
+		if info, err := os.Stat(path); err == nil && !info.IsDir() {
+			http.ServeFile(w, r, path)
+			return
+		}
+	}
+	http.ServeFile(w, r, index)
+}
+
+func serveEmbeddedSPA(w http.ResponseWriter, r *http.Request, webFS fs.FS) {
+	target := strings.TrimPrefix(strings.TrimPrefix(r.URL.Path, "/"), ".")
+	if target != "" {
+		if file, err := webFS.Open(target); err == nil {
+			defer file.Close()
+			if info, err := file.Stat(); err == nil && !info.IsDir() {
+				http.FileServer(http.FS(webFS)).ServeHTTP(w, r)
+				return
+			}
+		}
+	}
+	r.URL.Path = "/index.html"
+	http.FileServer(http.FS(webFS)).ServeHTTP(w, r)
 }
 
 const fallbackHTML = `<!doctype html>

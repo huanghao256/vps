@@ -67,6 +67,13 @@ VPS_CONTROL_PANEL_HOME=/vps-control-panel curl -fsSL https://raw.githubuserconte
 ```
 
 The installer creates `/vps-control-panel`, downloads the latest release binary, writes the environment file under `/vps-control-panel/config`, installs a systemd service, and starts `vps-inspector`.
+It prints a ready-to-open access URL with the generated token:
+
+```text
+Access URL: http://<server-ip>:8719/<generated-token>
+```
+
+Open that URL directly. The frontend stores the token automatically; there is no manual token input in the UI.
 Project-owned files are kept under `/vps-control-panel`:
 
 ```text

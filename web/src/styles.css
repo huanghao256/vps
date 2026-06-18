@@ -105,13 +105,6 @@ button:disabled {
   margin-top: 28px;
 }
 
-.tokenPanel label {
-  color: #9aa3af;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.tokenPanel input,
 .portForm input,
 .portForm select {
   width: 100%;
@@ -120,6 +113,24 @@ button:disabled {
   padding: 10px 11px;
   background: #111419;
   color: #edf2f7;
+}
+
+.authState {
+  display: block;
+  border-radius: 7px;
+  padding: 10px 11px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.authState.ok {
+  background: #12351f;
+  color: #22c55e;
+}
+
+.authState.warn {
+  background: #3a2a18;
+  color: #fbbf24;
 }
 
 .workspace {
@@ -645,4 +656,3 @@ p {
     grid-template-columns: 1fr;
   }
 }
-

@@ -51,6 +51,15 @@ VPS_CONTROL_PANEL_HOME=/vps-control-panel curl -fsSL https://raw.githubuserconte
 - 创建 systemd 服务
 - 设置开机自启
 - 启动 `vps-inspector`
+- 输出带令牌的访问链接
+
+安装完成后会输出类似：
+
+```text
+Access URL: http://<服务器IP>:8719/<自动生成的令牌>
+```
+
+直接打开这个链接即可。前端会自动保存令牌，界面里不再提供手动修改访问令牌的输入框。
 
 项目自有文件会统一放在：
 
@@ -73,12 +82,6 @@ VPS_CONTROL_PANEL_HOME=/vps-control-panel curl -fsSL https://raw.githubuserconte
 
 ```text
 /vps-control-panel/systemd/vps-inspector.service
-```
-
-安装完成后访问：
-
-```text
-http://<服务器IP>:8719
 ```
 
 ## 一键卸载
