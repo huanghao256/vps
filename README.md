@@ -60,7 +60,25 @@ Optional environment variables:
 VPS_INSPECTOR_ADDR=0.0.0.0:8719 VPS_INSPECTOR_AUTH_TOKEN=your-token curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/install.sh | sudo -E sh
 ```
 
-The installer downloads the latest release binary, writes `/etc/vps-inspector/vps-inspector.env`, installs a systemd service, and starts `vps-inspector`.
+To override the project root:
+
+```bash
+VPS_CONTROL_PANEL_HOME=/vps-control-panel curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/install.sh | sudo -E sh
+```
+
+The installer creates `/vps-control-panel`, downloads the latest release binary, writes the environment file under `/vps-control-panel/config`, installs a systemd service, and starts `vps-inspector`.
+Project-owned files are kept under `/vps-control-panel`:
+
+```text
+/vps-control-panel/bin/       Binary
+/vps-control-panel/config/    Environment config
+/vps-control-panel/systemd/   Service file source
+/vps-control-panel/data/      Reserved runtime data
+/vps-control-panel/logs/      Reserved logs
+/vps-control-panel/tmp/       Runtime temp files
+```
+
+The only file outside this directory is the systemd entry link at `/etc/systemd/system/vps-inspector.service`, which points back to `/vps-control-panel/systemd/vps-inspector.service`.
 
 ## One-Line Uninstall
 
@@ -70,7 +88,7 @@ Remove the service, binary, and configuration:
 curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/uninstall.sh | sudo sh
 ```
 
-Keep `/etc/vps-inspector` while removing the service and binary:
+Keep `/vps-control-panel/config` while removing the service, binary, and runtime directories:
 
 ```bash
 KEEP_CONFIG=1 curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/uninstall.sh | sudo -E sh

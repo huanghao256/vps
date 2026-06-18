@@ -36,14 +36,44 @@ curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/instal
 VPS_INSPECTOR_ADDR=0.0.0.0:8719 VPS_INSPECTOR_AUTH_TOKEN=your-token curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/install.sh | sudo -E sh
 ```
 
+如需覆盖项目根目录：
+
+```bash
+VPS_CONTROL_PANEL_HOME=/vps-control-panel curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/install.sh | sudo -E sh
+```
+
 安装脚本会自动完成：
 
 - 下载最新 Release 中的 Linux 二进制文件
-- 安装到 `/usr/local/bin/vps-inspector`
-- 写入 `/etc/vps-inspector/vps-inspector.env`
+- 创建 `/vps-control-panel` 项目根目录
+- 安装到 `/vps-control-panel/bin/vps-inspector`
+- 写入 `/vps-control-panel/config/vps-inspector.env`
 - 创建 systemd 服务
 - 设置开机自启
 - 启动 `vps-inspector`
+
+项目自有文件会统一放在：
+
+```text
+/vps-control-panel/bin/       二进制文件
+/vps-control-panel/config/    环境配置
+/vps-control-panel/systemd/   systemd 服务文件源
+/vps-control-panel/data/      预留运行数据
+/vps-control-panel/logs/      预留日志目录
+/vps-control-panel/tmp/       运行临时文件
+```
+
+唯一位于目录外的是 systemd 入口链接：
+
+```text
+/etc/systemd/system/vps-inspector.service
+```
+
+它会指向：
+
+```text
+/vps-control-panel/systemd/vps-inspector.service
+```
 
 安装完成后访问：
 
@@ -59,7 +89,7 @@ http://<服务器IP>:8719
 curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/uninstall.sh | sudo sh
 ```
 
-如果想保留 `/etc/vps-inspector` 配置目录：
+如果想保留 `/vps-control-panel/config` 配置目录：
 
 ```bash
 KEEP_CONFIG=1 curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/uninstall.sh | sudo -E sh

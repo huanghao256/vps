@@ -13,6 +13,7 @@ Use this skill to keep VPS Inspector maintainable while adding features. Prefer 
 - Backend: Go, no unnecessary third-party dependencies.
 - Frontend: React + TypeScript + Vite.
 - Deployment: single Go binary can embed built frontend assets; Linux install is handled by POSIX shell scripts and systemd.
+- Installed project-owned files must live under `/vps-control-panel` by default. Keep only the required systemd entry link under `/etc/systemd/system`.
 - User-facing UI text should be Chinese unless the surrounding file is English documentation.
 
 ## Backend Boundaries
@@ -83,8 +84,8 @@ Do not put page business logic, API calls, and large JSX all into `App.tsx`. If 
 
 ## Install, Uninstall, Release
 
-- `scripts/install.sh`: POSIX `sh`, root check, download release binary, write env file, install systemd service, start service.
-- `scripts/uninstall.sh`: POSIX `sh`, stop/disable service, remove binary/service/config by default, support `KEEP_CONFIG=1`.
+- `scripts/install.sh`: POSIX `sh`, root check, create `/vps-control-panel`, download release binary, write env file under `config/`, write service source under `systemd/`, symlink systemd entry, start service.
+- `scripts/uninstall.sh`: POSIX `sh`, stop/disable service, remove systemd link and `/vps-control-panel` by default, support `KEEP_CONFIG=1`.
 - Release workflow builds frontend, copies `web/dist` into `internal/httpapi/webdist`, then builds Linux `amd64` and `arm64` binaries.
 - Do not commit `web/dist`, `web/node_modules`, `bin`, `.gocache`, or `.npm-cache`.
 
@@ -114,4 +115,3 @@ If frontend dependencies are missing, run `npm install` or `npm ci` in `web/`. I
 - Keep commits focused.
 - Do not revert user changes.
 - Add docs when changing install, uninstall, release, or user-facing behavior.
-

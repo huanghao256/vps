@@ -3,8 +3,14 @@ set -eu
 
 REPO="${REPO:-huanghao256/vps}"
 SERVICE_NAME="${SERVICE_NAME:-vps-inspector}"
-INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
-CONFIG_DIR="${CONFIG_DIR:-/etc/vps-inspector}"
+PROJECT_ROOT="${VPS_CONTROL_PANEL_HOME:-/vps-control-panel}"
+INSTALL_DIR="${INSTALL_DIR:-${PROJECT_ROOT}/bin}"
+CONFIG_DIR="${CONFIG_DIR:-${PROJECT_ROOT}/config}"
+SERVICE_DIR="${SERVICE_DIR:-${PROJECT_ROOT}/systemd}"
+DATA_DIR="${DATA_DIR:-${PROJECT_ROOT}/data}"
+LOG_DIR="${LOG_DIR:-${PROJECT_ROOT}/logs}"
+TMP_DIR="${TMP_DIR:-${PROJECT_ROOT}/tmp}"
+SERVICE_LINK="${SERVICE_LINK:-/etc/systemd/system/${SERVICE_NAME}.service}"
 ADDR="${VPS_INSPECTOR_ADDR:-0.0.0.0:8719}"
 TOKEN="${VPS_INSPECTOR_AUTH_TOKEN:-}"
 
@@ -30,6 +36,15 @@ need_cmd() {
   fi
 }
 
+validate_project_root() {
+  case "$PROJECT_ROOT" in
+    ""|"/"|"/bin"|"/boot"|"/dev"|"/etc"|"/home"|"/lib"|"/lib64"|"/opt"|"/proc"|"/root"|"/run"|"/sbin"|"/sys"|"/tmp"|"/usr"|"/var")
+      echo "Unsafe VPS_CONTROL_PANEL_HOME: ${PROJECT_ROOT}" >&2
+      exit 1
+      ;;
+  esac
+}
+
 random_token() {
   if command -v openssl >/dev/null 2>&1; then
     openssl rand -hex 24
@@ -53,28 +68,36 @@ install_binary() {
   url="$(download_url)"
 
   echo "Downloading ${url}"
+  mkdir -p "$INSTALL_DIR"
   curl -fL "$url" -o "$tmp_dir/vps-inspector.tar.gz"
   tar -xzf "$tmp_dir/vps-inspector.tar.gz" -C "$tmp_dir"
   install -m 0755 "$tmp_dir/vps-inspector" "${INSTALL_DIR}/vps-inspector"
 }
 
+prepare_project_root() {
+  mkdir -p "$PROJECT_ROOT" "$INSTALL_DIR" "$CONFIG_DIR" "$SERVICE_DIR" "$DATA_DIR" "$LOG_DIR" "$TMP_DIR"
+  chmod 0755 "$PROJECT_ROOT" "$INSTALL_DIR" "$SERVICE_DIR" "$DATA_DIR" "$LOG_DIR" "$TMP_DIR"
+}
+
 write_config() {
-  mkdir -p "$CONFIG_DIR"
   if [ -z "$TOKEN" ]; then
     TOKEN="$(random_token)"
   fi
   cat > "${CONFIG_DIR}/vps-inspector.env" <<EOF
+VPS_CONTROL_PANEL_HOME=${PROJECT_ROOT}
 VPS_INSPECTOR_ADDR=${ADDR}
 VPS_INSPECTOR_AUTH_TOKEN=${TOKEN}
 VPS_INSPECTOR_READ_TIMEOUT=10s
 VPS_INSPECTOR_WRITE_TIMEOUT=60s
 VPS_INSPECTOR_SHUTDOWN_TIMEOUT=10s
+TMPDIR=${TMP_DIR}
 EOF
   chmod 0600 "${CONFIG_DIR}/vps-inspector.env"
 }
 
 write_service() {
-  cat > "/etc/systemd/system/${SERVICE_NAME}.service" <<EOF
+  service_file="${SERVICE_DIR}/${SERVICE_NAME}.service"
+  cat > "$service_file" <<EOF
 [Unit]
 Description=VPS Inspector
 After=network-online.target
@@ -83,6 +106,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 EnvironmentFile=${CONFIG_DIR}/vps-inspector.env
+WorkingDirectory=${PROJECT_ROOT}
 ExecStart=${INSTALL_DIR}/vps-inspector
 Restart=on-failure
 RestartSec=3
@@ -90,6 +114,8 @@ RestartSec=3
 [Install]
 WantedBy=multi-user.target
 EOF
+  chmod 0644 "$service_file"
+  ln -sfn "$service_file" "$SERVICE_LINK"
 }
 
 start_service() {
@@ -103,6 +129,8 @@ main() {
   need_cmd tar
   need_cmd systemctl
 
+  validate_project_root
+  prepare_project_root
   install_binary
   write_config
   write_service
@@ -110,6 +138,7 @@ main() {
 
   echo
   echo "VPS Inspector installed."
+  echo "Root: ${PROJECT_ROOT}"
   echo "URL: http://<server-ip>:${ADDR##*:}"
   echo "Token: ${TOKEN}"
   echo "Manage: systemctl status ${SERVICE_NAME}"
