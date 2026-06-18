@@ -60,6 +60,20 @@ VPS_INSPECTOR_ADDR=0.0.0.0:8719 VPS_INSPECTOR_AUTH_TOKEN=your-token curl -fsSL h
 
 The installer downloads the latest release binary, writes `/etc/vps-inspector/vps-inspector.env`, installs a systemd service, and starts `vps-inspector`.
 
+## One-Line Uninstall
+
+Remove the service, binary, and configuration:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/uninstall.sh | sudo sh
+```
+
+Keep `/etc/vps-inspector` while removing the service and binary:
+
+```bash
+KEEP_CONFIG=1 curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/uninstall.sh | sudo -E sh
+```
+
 ## Frontend
 
 ```bash
