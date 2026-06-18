@@ -1,5 +1,7 @@
 # VPS Inspector
 
+English | [简体中文](README.zh-CN.md)
+
 VPS Inspector is a lightweight self-hosted Linux VPS control panel and quality inspection tool. It runs on the VPS being tested and exposes a web UI for real-time system status, VPS line quality checks, and firewall port control.
 
 The project is designed for open-source maintenance: small trusted core, explicit package boundaries, safe command execution, and a frontend that can be embedded into a single Go binary.
