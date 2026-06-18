@@ -94,7 +94,7 @@ Do not put page business logic, API calls, and large JSX all into `App.tsx`. If 
 
 ## Install, Uninstall, Release
 
-- `scripts/install.sh`: POSIX `sh`, root check, create `/vps-control-panel`, download release binary, write env file under `config/`, write service source under `systemd/`, symlink systemd entry, start service, print a tokenized access URL.
+- `scripts/install.sh`: POSIX `sh`, root check, create `/vps-control-panel`, download release binary, write env file under `config/`, write service source under `systemd/`, symlink systemd entry, start service, print a tokenized access URL. Public IP detection must filter private ranges and support `VPS_INSPECTOR_PUBLIC_HOST` override.
 - `scripts/uninstall.sh`: POSIX `sh`, stop/disable service, remove systemd link and `/vps-control-panel` by default, support `KEEP_CONFIG=1`.
 - Release workflow builds frontend, copies `web/dist` into `internal/httpapi/webdist`, then builds Linux `amd64` and `arm64` binaries.
 - Do not commit `web/dist`, `web/node_modules`, `bin`, `.gocache`, or `.npm-cache`.

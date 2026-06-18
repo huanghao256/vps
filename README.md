@@ -66,6 +66,12 @@ To override the project root:
 VPS_CONTROL_PANEL_HOME=/vps-control-panel curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/install.sh | sudo -E sh
 ```
 
+If automatic public IP detection is wrong, set it explicitly:
+
+```bash
+VPS_INSPECTOR_PUBLIC_HOST=8.163.47.95 curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/install.sh | sudo -E sh
+```
+
 The installer creates `/vps-control-panel`, downloads the latest release binary, writes the environment file under `/vps-control-panel/config`, installs a systemd service, and starts `vps-inspector`.
 It prints a ready-to-open access URL with the generated token:
 

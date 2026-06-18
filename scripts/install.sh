@@ -53,19 +53,64 @@ random_token() {
   date +%s | sha256sum | awk '{print $1}'
 }
 
+is_public_ipv4() {
+  ip="$1"
+  case "$ip" in
+    ""|127.*|10.*|192.168.*|169.254.*|0.*|255.*)
+      return 1
+      ;;
+    172.*)
+      second="$(printf '%s' "$ip" | awk -F. '{print $2}')"
+      if [ "$second" -ge 16 ] 2>/dev/null && [ "$second" -le 31 ] 2>/dev/null; then
+        return 1
+      fi
+      ;;
+    100.*)
+      second="$(printf '%s' "$ip" | awk -F. '{print $2}')"
+      if [ "$second" -ge 64 ] 2>/dev/null && [ "$second" -le 127 ] 2>/dev/null; then
+        return 1
+      fi
+      ;;
+  esac
+  printf '%s' "$ip" | grep -Eq '^[0-9]{1,3}(\.[0-9]{1,3}){3}$'
+}
+
+first_public_ip() {
+  for ip in "$@"; do
+    ip="$(printf '%s' "$ip" | tr -d '[:space:]')"
+    if is_public_ipv4 "$ip"; then
+      echo "$ip"
+      return 0
+    fi
+  done
+  return 1
+}
+
+curl_text() {
+  curl -fsS --noproxy '*' --max-time 4 "$1" 2>/dev/null || true
+}
+
 public_host() {
   if [ -n "${VPS_INSPECTOR_PUBLIC_HOST:-}" ]; then
     echo "$VPS_INSPECTOR_PUBLIC_HOST"
     return
   fi
 
-  host="$(curl -fsS --max-time 5 https://api.ipify.org 2>/dev/null || true)"
+  host="$(first_public_ip \
+    "$(curl_text https://api.ipify.org)" \
+    "$(curl_text https://ifconfig.me/ip)" \
+    "$(curl_text https://icanhazip.com)" \
+    "$(curl_text https://checkip.amazonaws.com)" \
+    "$(curl_text http://100.100.100.200/latest/meta-data/eipv4)" \
+    "$(curl_text http://100.100.100.200/latest/meta-data/public-ipv4)" \
+    "$(curl_text http://169.254.169.254/latest/meta-data/public-ipv4)" \
+  )"
   if [ -n "$host" ]; then
     echo "$host"
     return
   fi
 
-  hostname -I 2>/dev/null | awk '{print $1}'
+  first_public_ip $(hostname -I 2>/dev/null || true) || true
 }
 
 download_url() {

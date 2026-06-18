@@ -42,6 +42,12 @@ VPS_INSPECTOR_ADDR=0.0.0.0:8719 VPS_INSPECTOR_AUTH_TOKEN=your-token curl -fsSL h
 VPS_CONTROL_PANEL_HOME=/vps-control-panel curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/install.sh | sudo -E sh
 ```
 
+如果自动识别公网 IP 不准确，可以显式指定：
+
+```bash
+VPS_INSPECTOR_PUBLIC_HOST=8.163.47.95 curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/install.sh | sudo -E sh
+```
+
 安装脚本会自动完成：
 
 - 下载最新 Release 中的 Linux 二进制文件
