@@ -32,7 +32,6 @@ export function App() {
 function readInitialToken() {
   const pathToken = window.location.pathname.split('/').filter(Boolean)[0] ?? '';
   if (isURLToken(pathToken)) {
-    window.history.replaceState({}, document.title, '/');
     return decodeURIComponent(pathToken);
   }
   return localStorage.getItem(tokenKey) ?? '';

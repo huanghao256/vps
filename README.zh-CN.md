@@ -56,7 +56,7 @@ VPS_INSPECTOR_PUBLIC_HOST=8.163.47.95 curl -fsSL https://raw.githubusercontent.c
 - 写入 `/vps-control-panel/config/vps-inspector.env`
 - 创建 systemd 服务
 - 设置开机自启
-- 启动 `vps-inspector`
+- 启动或重启 `vps-inspector`
 - 输出带令牌的访问链接
 
 安装完成后会输出类似：
@@ -65,7 +65,7 @@ VPS_INSPECTOR_PUBLIC_HOST=8.163.47.95 curl -fsSL https://raw.githubusercontent.c
 Access URL: http://<服务器IP>:8719/<自动生成的令牌>
 ```
 
-直接打开这个链接即可。前端会自动保存令牌，界面里不再提供手动修改访问令牌的输入框。
+直接打开这个链接即可。前端会从 URL 中读取并保存令牌，界面里不再提供手动修改访问令牌的输入框。
 
 项目自有文件会统一放在：
 

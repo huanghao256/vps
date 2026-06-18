@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -44,7 +45,7 @@ func serveLocalSPA(w http.ResponseWriter, r *http.Request, dist, index string) {
 }
 
 func serveEmbeddedSPA(w http.ResponseWriter, r *http.Request, webFS fs.FS) {
-	target := strings.TrimPrefix(strings.TrimPrefix(r.URL.Path, "/"), ".")
+	target := strings.TrimPrefix(path.Clean(r.URL.Path), "/")
 	if target != "" {
 		if file, err := webFS.Open(target); err == nil {
 			defer file.Close()
@@ -54,8 +55,14 @@ func serveEmbeddedSPA(w http.ResponseWriter, r *http.Request, webFS fs.FS) {
 			}
 		}
 	}
-	r.URL.Path = "/index.html"
-	http.FileServer(http.FS(webFS)).ServeHTTP(w, r)
+
+	index, err := fs.ReadFile(webFS, "index.html")
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, _ = w.Write(index)
 }
 
 const fallbackHTML = `<!doctype html>

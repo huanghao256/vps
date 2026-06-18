@@ -89,12 +89,12 @@ Do not put page business logic, API calls, and large JSX all into `App.tsx`. If 
 - `系统状态` should show realtime Linux status: CPU, memory, disk, uptime, network traffic, IP, connections.
 - `VPS检测` should emphasize `线路`, `延迟`, `带宽`, `稳定性`, `IP风控风险` with readable Chinese metrics and process visuals.
 - `端口控制` should show firewall state, existing rules, and explicit add/delete controls.
-- Do not expose a manual token editor in the UI. The installer prints `http://host:port/token`; the frontend reads the first URL segment, stores it locally, then cleans the address bar.
+- Do not expose a manual token editor in the UI. The installer prints `http://host:port/token`; the frontend reads the first URL segment and stores it locally. Keep the URL stable so refreshes continue to work.
 - Avoid raw JSON in user-facing panels. Convert details into labels, scores, badges, cards, rings, tables, or process tracks.
 
 ## Install, Uninstall, Release
 
-- `scripts/install.sh`: POSIX `sh`, root check, create `/vps-control-panel`, download release binary, write env file under `config/`, write service source under `systemd/`, symlink systemd entry, start service, print a tokenized access URL. Public IP detection must filter private ranges and support `VPS_INSPECTOR_PUBLIC_HOST` override.
+- `scripts/install.sh`: POSIX `sh`, root check, create `/vps-control-panel`, download release binary, write env file under `config/`, write service source under `systemd/`, symlink systemd entry, enable and restart service, print a tokenized access URL. Public IP detection must filter private ranges and support `VPS_INSPECTOR_PUBLIC_HOST` override.
 - `scripts/uninstall.sh`: POSIX `sh`, stop/disable service, remove systemd link and `/vps-control-panel` by default, support `KEEP_CONFIG=1`.
 - Release workflow builds frontend, copies `web/dist` into `internal/httpapi/webdist`, then builds Linux `amd64` and `arm64` binaries.
 - Do not commit `web/dist`, `web/node_modules`, `bin`, `.gocache`, or `.npm-cache`.

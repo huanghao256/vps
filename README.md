@@ -72,14 +72,14 @@ If automatic public IP detection is wrong, set it explicitly:
 VPS_INSPECTOR_PUBLIC_HOST=8.163.47.95 curl -fsSL https://raw.githubusercontent.com/huanghao256/vps/main/scripts/install.sh | sudo -E sh
 ```
 
-The installer creates `/vps-control-panel`, downloads the latest release binary, writes the environment file under `/vps-control-panel/config`, installs a systemd service, and starts `vps-inspector`.
+The installer creates `/vps-control-panel`, downloads the latest release binary, writes the environment file under `/vps-control-panel/config`, installs a systemd service, and starts or restarts `vps-inspector`.
 It prints a ready-to-open access URL with the generated token:
 
 ```text
 Access URL: http://<server-ip>:8719/<generated-token>
 ```
 
-Open that URL directly. The frontend stores the token automatically; there is no manual token input in the UI.
+Open that URL directly. The frontend reads the token from the URL and stores it automatically; there is no manual token input in the UI.
 Project-owned files are kept under `/vps-control-panel`:
 
 ```text

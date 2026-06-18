@@ -180,7 +180,8 @@ EOF
 
 start_service() {
   systemctl daemon-reload
-  systemctl enable --now "$SERVICE_NAME"
+  systemctl enable "$SERVICE_NAME" >/dev/null
+  systemctl restart "$SERVICE_NAME"
 }
 
 main() {
